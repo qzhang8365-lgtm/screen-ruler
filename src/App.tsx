@@ -4,6 +4,7 @@ import { RulerDisplay } from './components/RulerDisplay';
 import { CalibrationModal } from './components/CalibrationModal';
 
 const STANDARD_CARD_WIDTH_MM = 85.60;
+const STANDARD_CARD_HEIGHT_MM = 53.98; // 卡片短边
 const DEFAULT_PIXELS_PER_MM = 3.78;
 
 export default function App() {
@@ -39,7 +40,7 @@ export default function App() {
       <CalibrationModal
         isOpen={isCalibrationOpen}
         pixelsPerMm={pixelsPerMm}
-        standardCardWidthMm={STANDARD_CARD_WIDTH_MM}
+        standardCardHeightMm={STANDARD_CARD_HEIGHT_MM}
         onSave={handleSaveCalibration}
         onClose={() => setIsCalibrationOpen(false)}
       />

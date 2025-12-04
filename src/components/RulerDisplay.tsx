@@ -18,12 +18,12 @@ export function RulerDisplay({ pixelsPerMm }: RulerDisplayProps) {
   useEffect(() => {
     if (draggingLine === null) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const updatePosition = (clientY: number) => {
       if (!containerRef.current) return;
       
       const rect = containerRef.current.getBoundingClientRect();
       const scrollTop = containerRef.current.scrollTop;
-      const newPosition = e.clientY - rect.top + scrollTop;
+      const newPosition = clientY - rect.top + scrollTop;
       
       if (newPosition >= 0 && newPosition <= totalMm * pixelsPerMm) {
         if (draggingLine === 1) {
@@ -34,16 +34,37 @@ export function RulerDisplay({ pixelsPerMm }: RulerDisplayProps) {
       }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (e: MouseEvent) => {
+      updatePosition(e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      // 阻止默认滚动行为，防止拖动时页面滚动
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      updatePosition(e.touches[0].clientY);
+    };
+
+    const handleEnd = () => {
       setDraggingLine(null);
     };
 
+    // 添加鼠标事件监听
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseup', handleEnd);
+    
+    // 添加触摸事件监听 (non-passive to allow preventDefault)
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleEnd);
+    document.addEventListener('touchcancel', handleEnd);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleEnd);
+      document.removeEventListener('touchcancel', handleEnd);
     };
   }, [draggingLine, pixelsPerMm, totalMm]);
 
@@ -87,9 +108,13 @@ export function RulerDisplay({ pixelsPerMm }: RulerDisplayProps) {
         
         {/* 第一条辅助线 */}
         <div
-          className="absolute left-0 right-0 h-[2px] bg-[#ff6b6b] cursor-ns-resize z-10 group"
+          className="absolute left-0 right-0 h-[2px] bg-[#ff6b6b] cursor-ns-resize z-10 group touch-none"
           style={{ top: `${line1Position}px` }}
           onMouseDown={() => setDraggingLine(1)}
+          onTouchStart={(e) => {
+            e.preventDefault(); // 防止触摸开始时触发其他手势
+            setDraggingLine(1);
+          }}
         >
           <div className="absolute left-[100px] -top-[10px] bg-[#ff6b6b] text-white text-[11px] px-2 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
             Line 1: {(line1Position / pixelsPerMm).toFixed(1)} mm
@@ -102,9 +127,13 @@ export function RulerDisplay({ pixelsPerMm }: RulerDisplayProps) {
 
         {/* 第二条辅助线 */}
         <div
-          className="absolute left-0 right-0 h-[2px] bg-[#4ecb71] cursor-ns-resize z-10 group"
+          className="absolute left-0 right-0 h-[2px] bg-[#4ecb71] cursor-ns-resize z-10 group touch-none"
           style={{ top: `${line2Position}px` }}
           onMouseDown={() => setDraggingLine(2)}
+          onTouchStart={(e) => {
+            e.preventDefault(); // 防止触摸开始时触发其他手势
+            setDraggingLine(2);
+          }}
         >
           <div className="absolute left-[100px] -top-[10px] bg-[#4ecb71] text-white text-[11px] px-2 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
             Line 2: {(line2Position / pixelsPerMm).toFixed(1)} mm

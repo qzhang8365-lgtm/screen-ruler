@@ -14,6 +14,19 @@ export default function App() {
   const [detectedDeviceName, setDetectedDeviceName] = useState<string>('');
 
   useEffect(() => {
+    // Security: Force upgrade to HTTPS for all resources
+    // This helps prevent "Mixed Content" warnings on mobile
+    const meta = document.createElement('meta');
+    meta.httpEquiv = "Content-Security-Policy";
+    meta.content = "upgrade-insecure-requests";
+    document.head.appendChild(meta);
+
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
+
+  useEffect(() => {
     // Load calibration from localStorage
     const savedPPM = localStorage.getItem('ruler_pixels_per_mm');
     if (savedPPM) {
